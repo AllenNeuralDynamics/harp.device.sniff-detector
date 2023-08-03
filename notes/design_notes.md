@@ -1,6 +1,8 @@
 ## References
 * [Shibaura Thermistors](https://www.shibauraelectronics.com/pdf/shibaura_products_catalog.pdf)
     * Overview of thermistor principles
+* [Thermistor Temperature Sensing System](https://www.analog.com/en/analog-dialogue/articles/thermistor-temperature-sensing-system-part-1.html)
+* [Thermistor Interfacing](https://www.analog.com/media/en/training-seminars/design-handbooks/transducer-interfacing-handbook/Chapter9.pdf)
 ## Self-Heating Strategy References
 * [LM134 Datasheet](https://www.analog.com/media/en/technical-documentation/data-sheets/134sfc.pdf)
     * Constant current source for self-heating strategy (See "Zero Temperature Coefficient Current Source".)
