@@ -19,3 +19,6 @@ desktop.ini
 *.egg-info
 # Python generated
 __pycache__/
+
+# zips
+*.zip
