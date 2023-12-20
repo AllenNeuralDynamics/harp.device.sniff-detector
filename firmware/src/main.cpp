@@ -79,7 +79,10 @@ void update_app_state()
     }
 }
 
-void reset_app(){}
+void reset_app()
+{
+    app_regs.event_frequency_hz = MAX_EVENT_FREQUENCY_HZ;
+}
 
 // Create Core.
 HarpCApp& app = HarpCApp::init(who_am_i, hw_version_major, hw_version_minor,
@@ -101,6 +104,7 @@ int main()
     // Init Synchronizer.
     HarpSynchronizer::init(uart0, HARP_SYNC_RX_PIN);
     app.set_synchronizer(&HarpSynchronizer::instance());
+    reset_app();
     //app.set_visual_indicators_fn(set_led_state);
     // Setup continuous writing of the latest ADC value to the corresponding
     // Harp register.
