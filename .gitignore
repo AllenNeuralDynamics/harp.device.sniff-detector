@@ -1,14 +1,16 @@
 # files created for compiling the code
 build/
-exports/
 
 # Kicad-generated
 *-backups/
 *.kicad_prl
 *.kicad_sch-bak
+*.lck
 fp-info-cache
-# User-specified gerber output folder
-gerbers/
+
+# User-specified output folders for PCBA-related files.
+hardware/board/*/gerbers/
+hardware/board/*/exports/
 
 # Vim temporary files
 *.swp
