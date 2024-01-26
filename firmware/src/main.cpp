@@ -24,17 +24,23 @@ const uint8_t fw_version_major = 0;
 const uint8_t fw_version_minor = 0;
 const uint16_t serial_number = 0;
 
+struct ErrorStateBits
+{
+    unsigned SENSOR_NOT_DETECTED    : 1;
+    unsigned                        : 7;
+};
+
 // Setup for Harp App
 const size_t reg_count = 4;
 
-uint32_t __not_in_flash("dispatch_interval") dispatch_interval_us;
+uint32_t __not_in_flash("dispatch_interval_us") dispatch_interval_us;
 
 #pragma pack(push, 1)
 struct app_regs_t
 {
-    volatile uint16_t voltage_raw;          // 32
-    volatile uint8_t error_state;
-    volatile uint8_t  dispatch_events;   // 33
+    volatile uint16_t voltage_raw;          // 32.
+    volatile uint8_t error_state;       // 33. 0 = no errors.
+    volatile uint8_t  dispatch_events;   // 34
     volatile uint16_t event_dispatch_frequency_hz;   // 33
     // More app "registers" here.
 };
