@@ -25,51 +25,70 @@ const uint8_t fw_version_minor = 0;
 const uint16_t serial_number = 0;
 
 // Setup for Harp App
-const size_t reg_count = 2;
+const size_t reg_count = 4;
+
+uint32_t __not_in_flash("dispatch_interval") dispatch_interval_us;
 
 #pragma pack(push, 1)
 struct app_regs_t
 {
     volatile uint16_t voltage_raw;          // 32
-    volatile uint16_t event_frequency_hz;   // 33
+    volatile uint8_t error_state;
+    volatile uint8_t  dispatch_events;   // 33
+    volatile uint16_t event_dispatch_frequency_hz;   // 33
     // More app "registers" here.
-} app_regs;
+};
+#pragma pack(pop)
+app_regs_t __not_in_flash("app_regs") app_regs; // put app regs in ram.
 
 // Define "specs" per-register
 RegSpecs app_reg_specs[reg_count]
 {
     {(uint8_t*)&app_regs.voltage_raw, sizeof(app_regs.voltage_raw), U16},
-    {(uint8_t*)&app_regs.event_frequency_hz, sizeof(app_regs.event_frequency_hz), U16}
-    // More specs here if we add additional registers.
+    {(uint8_t*)&app_regs.error_state, sizeof(app_regs.error_state), U8},
+    {(uint8_t*)&app_regs.dispatch_events, sizeof(app_regs.dispatch_events), U8},
+    {(uint8_t*)&app_regs.event_dispatch_frequency_hz,
+     sizeof(app_regs.event_dispatch_frequency_hz), U16}
 };
 
 void write_event_frequency_hz(msg_t& msg)
 {
     const uint16_t& event_frequency_hz = *((uint16_t*)msg.payload);
+    // Cap maximum value.
     if (event_frequency_hz > MAX_EVENT_FREQUENCY_HZ)
     {
-        app_regs.event_frequency_hz = MAX_EVENT_FREQUENCY_HZ;
+        // Update register and dependedent values.
+        app_regs.event_dispatch_frequency_hz = MAX_EVENT_FREQUENCY_HZ;
+        dispatch_interval_us = 1000; // precomputed
         HarpCore::send_harp_reply(WRITE_ERROR, msg.header.address);
+        return;
     }
-    else
-        HarpCore::write_reg_generic(msg);
+    app_regs.event_dispatch_frequency_hz = event_frequency_hz;
+    dispatch_interval_us = div_u32u32(1'000'000,
+                                      app_regs.event_dispatch_frequency_hz);
+    HarpCore::send_harp_reply(WRITE_ERROR, msg.header.address);
 }
 
 RegFnPair reg_handler_fns[reg_count]
 {
     {HarpCore::read_reg_generic, HarpCore::write_to_read_only_reg_error},
+    {HarpCore::read_reg_generic, HarpCore::write_to_read_only_reg_error},
+    {HarpCore::read_reg_generic, HarpCore::write_reg_generic},
     {HarpCore::read_reg_generic, write_event_frequency_hz}
     // More handler function pairs here if we add additional registers.
 };
 
 void update_app_state()
 {
-    if (HarpCore::is_muted())
+    // Update error state.
+    // TODO: detect if sensor is disconnected.
+    // Dispatch message at specified frequency if specified to do so.
+    if (HarpCore::is_muted() || app_regs.dispatch_events == 0)
         return;
-    // Dispatch message at specified frequency.
     static uint32_t last_msg_time_us = time_us_32(); // init this value once.
     uint32_t curr_time_us = time_us_32();
-    if ((curr_time_us - last_msg_time_us) >= 1'000'000/app_regs.event_frequency_hz)
+    // TODO: do this division once.
+    if ((curr_time_us - last_msg_time_us) >= dispatch_interval_us)
     {
         last_msg_time_us = curr_time_us;
         const RegSpecs& reg_specs = app_reg_specs[0];
@@ -81,7 +100,9 @@ void update_app_state()
 
 void reset_app()
 {
-    app_regs.event_frequency_hz = MAX_EVENT_FREQUENCY_HZ;
+    app_regs.error_state = 0;
+    app_regs.dispatch_events = 0; // false.
+    app_regs.event_dispatch_frequency_hz = MAX_EVENT_FREQUENCY_HZ;
 }
 
 // Create Core.
