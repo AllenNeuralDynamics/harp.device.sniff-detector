@@ -41,7 +41,7 @@ struct app_regs_t
     volatile uint16_t voltage_raw;          // 32.
     volatile uint8_t error_state;       // 33. 0 = no errors.
     volatile uint8_t  dispatch_events;   // 34
-    volatile uint16_t event_dispatch_frequency_hz;   // 33
+    volatile uint16_t event_dispatch_frequency_hz;   // 35
     // More app "registers" here.
 };
 #pragma pack(pop)
@@ -59,9 +59,9 @@ RegSpecs app_reg_specs[reg_count]
 
 void write_event_frequency_hz(msg_t& msg)
 {
-    const uint16_t& event_frequency_hz = *((uint16_t*)msg.payload);
+    HarpCore::copy_msg_payload_to_register(msg);
     // Cap maximum value.
-    if (event_frequency_hz > MAX_EVENT_FREQUENCY_HZ)
+    if (app_regs.event_dispatch_frequency_hz > MAX_EVENT_FREQUENCY_HZ)
     {
         // Update register and dependedent values.
         app_regs.event_dispatch_frequency_hz = MAX_EVENT_FREQUENCY_HZ;
@@ -69,10 +69,9 @@ void write_event_frequency_hz(msg_t& msg)
         HarpCore::send_harp_reply(WRITE_ERROR, msg.header.address);
         return;
     }
-    app_regs.event_dispatch_frequency_hz = event_frequency_hz;
     dispatch_interval_us = div_u32u32(1'000'000,
                                       app_regs.event_dispatch_frequency_hz);
-    HarpCore::send_harp_reply(WRITE_ERROR, msg.header.address);
+    HarpCore::send_harp_reply(WRITE, msg.header.address);
 }
 
 RegFnPair reg_handler_fns[reg_count]
@@ -97,7 +96,7 @@ void update_app_state()
     if ((curr_time_us - last_msg_time_us) >= dispatch_interval_us)
     {
         last_msg_time_us = curr_time_us;
-        const RegSpecs& reg_specs = app_reg_specs[0];
+        const RegSpecs& reg_specs = app_reg_specs[0]; // voltage_raw register
         HarpCore::send_harp_reply(EVENT, APP_REG_START_ADDRESS,
                                   reg_specs.base_ptr, reg_specs.num_bytes,
                                   reg_specs.payload_type);
@@ -125,11 +124,11 @@ HarpCApp& app = HarpCApp::init(who_am_i, hw_version_major, hw_version_minor,
 int main()
 {
 #ifdef DEBUG
-    stdio_uart_init_full(uart1, 921600, UART_TX_PIN, -1); // use uart1 tx only.
+    stdio_uart_init_full(uart0, 921600, UART_TX_PIN, -1); // use uart1 tx only.
     printf("Hello, from an RP2040!\r\n");
 #endif
     // Init Synchronizer.
-    HarpSynchronizer::init(uart0, HARP_SYNC_RX_PIN);
+    HarpSynchronizer::init(uart1, HARP_SYNC_RX_PIN);
     app.set_synchronizer(&HarpSynchronizer::instance());
     reset_app();
     //app.set_visual_indicators_fn(set_led_state);
