@@ -22,8 +22,7 @@ print("Waiting for events.")
 #reply = device.set_mode(DeviceMode.Active)
 start_time = perf_counter()
 # Enable sniff message events at 1 Hz
-reply = device.send(HarpMessage.WriteU16(35, 2).frame)
-reply = device.send(HarpMessage.WriteU8(34, 1).frame) # >0 = enable dispatch
+reply = device.send(HarpMessage.WriteU16(33, 1).frame) # >0 = enable dispatch
 try:
     while True:
         event_response = device._read()
@@ -31,6 +30,7 @@ try:
             print()
             print(event_response)
 except KeyboardInterrupt:
-    #reply = device.disable_alive_en()
+    print("Disabling events")
+    reply = device.send(HarpMessage.WriteU16(33, 0).frame) # >0 = enable dispatch
     # Close connection
     device.disconnect()

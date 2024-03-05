@@ -1,7 +1,7 @@
 ## Setting up the Build Environment
 
 ### Install Submodules
-This project uses the [Harp Core RP2040](https://github.com/AllenNeuralDynamics/harp.core.rp2040) library as a submodule.
+This project uses [Harp Core RP2040](https://github.com/AllenNeuralDynamics/harp.core.rp2040) and [etl](https://github.com/ETLCPP/etl/tree/master) libraries as submodules.
 Install it with:
 ````
 git submodule update --init

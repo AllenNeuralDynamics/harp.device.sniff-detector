@@ -10,6 +10,9 @@
     #include <cstdio> // for printf
 #endif
 
+#define SAMPLE_INTERVAL_US (10'000) // 100 Hz
+#define DISCONNECT_CHECK_INTERVAL_US (2'000'000) // 0.5 Hz
+
 // Create PIO SPI ADC instance for thermistor sensing.
 PIO_ADS7049 thermistor(pio0, ADC_CS_PIN, ADC_SCK_PIN, ADC_POCI_PIN);
 
@@ -24,24 +27,17 @@ const uint8_t fw_version_major = 0;
 const uint8_t fw_version_minor = 0;
 const uint16_t serial_number = 0;
 
-struct ErrorStateBits
-{
-    unsigned SENSOR_NOT_DETECTED    : 1;
-    unsigned                        : 7;
-};
-
 // Setup for Harp App
-const size_t reg_count = 4;
+const size_t reg_count = 2;
 
 uint32_t __not_in_flash("dispatch_interval_us") dispatch_interval_us;
+uint32_t __not_in_flash("next_msg_dispatch_time_us") next_msg_dispatch_time_us;
 
 #pragma pack(push, 1)
 struct app_regs_t
 {
     volatile uint16_t voltage_raw;          // 32.
-    volatile uint8_t error_state;       // 33. 0 = no errors.
-    volatile uint8_t  dispatch_events;   // 34
-    volatile uint16_t event_dispatch_frequency_hz;   // 35
+    volatile uint16_t voltage_dispatch_frequency_hz;   // 33
     // More app "registers" here.
 };
 #pragma pack(pop)
@@ -51,52 +47,46 @@ app_regs_t __not_in_flash("app_regs") app_regs; // put app regs in ram.
 RegSpecs app_reg_specs[reg_count]
 {
     {(uint8_t*)&app_regs.voltage_raw, sizeof(app_regs.voltage_raw), U16},
-    {(uint8_t*)&app_regs.error_state, sizeof(app_regs.error_state), U8},
-    {(uint8_t*)&app_regs.dispatch_events, sizeof(app_regs.dispatch_events), U8},
-    {(uint8_t*)&app_regs.event_dispatch_frequency_hz,
-     sizeof(app_regs.event_dispatch_frequency_hz), U16}
+    {(uint8_t*)&app_regs.voltage_dispatch_frequency_hz, sizeof(app_regs.voltage_dispatch_frequency_hz), U16}
 };
 
-void write_event_frequency_hz(msg_t& msg)
+void write_voltage_dispatch_frequency_hz(msg_t& msg)
 {
     HarpCore::copy_msg_payload_to_register(msg);
     // Cap maximum value.
-    if (app_regs.event_dispatch_frequency_hz > MAX_EVENT_FREQUENCY_HZ)
+    if (app_regs.voltage_dispatch_frequency_hz > MAX_EVENT_FREQUENCY_HZ)
     {
         // Update register and dependedent values.
-        app_regs.event_dispatch_frequency_hz = MAX_EVENT_FREQUENCY_HZ;
+        app_regs.voltage_dispatch_frequency_hz = MAX_EVENT_FREQUENCY_HZ;
         dispatch_interval_us = 1000; // precomputed
+        next_msg_dispatch_time_us = time_us_32(); // reset interval.
         HarpCore::send_harp_reply(WRITE_ERROR, msg.header.address);
         return;
     }
     dispatch_interval_us = div_u32u32(1'000'000,
-                                      app_regs.event_dispatch_frequency_hz);
+                                      app_regs.voltage_dispatch_frequency_hz);
+    next_msg_dispatch_time_us = time_us_32(); // reset interval.
     HarpCore::send_harp_reply(WRITE, msg.header.address);
 }
 
 RegFnPair reg_handler_fns[reg_count]
 {
     {HarpCore::read_reg_generic, HarpCore::write_to_read_only_reg_error},
-    {HarpCore::read_reg_generic, HarpCore::write_to_read_only_reg_error},
-    {HarpCore::read_reg_generic, HarpCore::write_reg_generic},
-    {HarpCore::read_reg_generic, write_event_frequency_hz}
+    {HarpCore::read_reg_generic, write_voltage_dispatch_frequency_hz}
     // More handler function pairs here if we add additional registers.
 };
 
 void update_app_state()
 {
-    // Update error state.
-    // TODO: detect if sensor is disconnected.
-    // Dispatch message at specified frequency if specified to do so.
-    if (HarpCore::is_muted() || app_regs.dispatch_events == 0)
-        return;
-    static uint32_t last_msg_time_us = time_us_32(); // init this value once.
+    // Update periodic tasks.
     uint32_t curr_time_us = time_us_32();
-    // TODO: do this division once.
-    if ((curr_time_us - last_msg_time_us) >= dispatch_interval_us)
+    // Dispatch voltage msg at specified frequency if specified to do so.
+    if (HarpCore::is_muted() || (app_regs.voltage_dispatch_frequency_hz == 0))
+        return;
+    if (int32_t(curr_time_us - next_msg_dispatch_time_us) >= dispatch_interval_us)
     {
-        last_msg_time_us = curr_time_us;
-        const RegSpecs& reg_specs = app_reg_specs[0]; // voltage_raw register
+        next_msg_dispatch_time_us += dispatch_interval_us;
+        const RegSpecs& reg_specs = app_reg_specs[0]; // voltage_raw reg.
         HarpCore::send_harp_reply(EVENT, APP_REG_START_ADDRESS,
                                   reg_specs.base_ptr, reg_specs.num_bytes,
                                   reg_specs.payload_type);
@@ -105,9 +95,10 @@ void update_app_state()
 
 void reset_app()
 {
-    app_regs.error_state = 0;
-    app_regs.dispatch_events = 0; // false.
-    app_regs.event_dispatch_frequency_hz = MAX_EVENT_FREQUENCY_HZ;
+    // Put app variables in starting state.
+    next_msg_dispatch_time_us = time_us_32();
+    app_regs.voltage_dispatch_frequency_hz = 0; // Do not dispatch periodic
+                                                // voltage events.
 }
 
 // Create Core.
@@ -137,6 +128,7 @@ int main()
     thermistor.setup_dma_stream_to_memory(&app_regs.voltage_raw, 1);
     // Start PIO-connected hardware.
     thermistor.start();
+    reset_app();
     while(true)
         app.run();
 }
