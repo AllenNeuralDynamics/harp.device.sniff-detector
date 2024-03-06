@@ -1,0 +1,18 @@
+%YAML 1.1
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/harp-tech/protocol/main/schema/device.json
+device: SniffDetector
+whoAmI: 1401
+firmwareVersion: "0.1"
+hardwareTargets: "0.1"
+registers:
+  RawVoltage:
+    address: 32
+    type: U16
+    access: Event
+    description: Emits a periodic event containing the raw voltage read of the thermistor sensor.
+  RawVoltageDispatchRate:
+    address: 33
+    type: U16
+    access: Write
+    description: Sets the rate at which the RawVoltage event is emitted.

@@ -1,0 +1,25 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32825.248
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{AC42454F-6609-4485-9310-A2297BDF0D46}") = "AllenNeuralDynamics.SniffDetector", "AllenNeuralDynamics.SniffDetector\AllenNeuralDynamics.SniffDetector.csproj", "{C592886F-2CC8-4DC9-99EB-9B800F26A815}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C592886F-2CC8-4DC9-99EB-9B800F26A815}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C592886F-2CC8-4DC9-99EB-9B800F26A815}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C592886F-2CC8-4DC9-99EB-9B800F26A815}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C592886F-2CC8-4DC9-99EB-9B800F26A815}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AD3DD58E-0C3C-4D97-9B0D-4F44452C12F9}
+	EndGlobalSection
+EndGlobal
