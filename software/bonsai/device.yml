@@ -1,43 +1,18 @@
 %YAML 1.1
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/harp-tech/reflex-generator/main/schema/device.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/harp-tech/protocol/main/schema/device.json
 device: SniffDetector
 whoAmI: 1401
-firmwareVersion: "0.0"
-hardwareTargets: "0.0"
+firmwareVersion: "0.1"
+hardwareTargets: "0.1"
 registers:
   RawVoltage:
     address: 32
     type: U16
     access: Event
     description: Emits a periodic event containing the raw voltage read of the thermistor sensor.
-  ErrorState:
+  RawVoltageDispatchRate:
     address: 33
-    type: U8
-    access: Event
-    description: Emits an event with error state information.
-    maskType: Errors
-  EventEnable:
-    address: 34
-    type: U8
-    access: Write
-    description: Enables the dispatch of selected events.
-    maskType: SniffDetectorEvents
-  EventDispatchFrequency:
-    address: 35
     type: U16
     access: Write
-    defaultValue: 100
-    description: The frequency at which the device will emit periodic events selected under SniffDetectorEvents.
-bitMasks:
-  SniffDetectorEvents:
-    description: Available period events.
-    bits:
-      None: 0x0
-      RawVoltage: 0x1
-  Errors:
-    description: Available error states in the board
-    bits:
-      None: 0x0
-      SensorNotDetected: 0x1
-
+    description: Sets the rate at which the RawVoltage event is emitted.

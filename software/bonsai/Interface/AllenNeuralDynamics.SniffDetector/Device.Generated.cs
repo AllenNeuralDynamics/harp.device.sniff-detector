@@ -38,9 +38,7 @@ namespace AllenNeuralDynamics.SniffDetector
             (Bonsai.Harp.Device.RegisterMap.ToDictionary(entry => entry.Key, entry => entry.Value))
         {
             { 32, typeof(RawVoltage) },
-            { 33, typeof(ErrorState) },
-            { 34, typeof(EventEnable) },
-            { 35, typeof(EventDispatchFrequency) }
+            { 33, typeof(RawVoltageDispatchRate) }
         };
     }
 
@@ -70,13 +68,9 @@ namespace AllenNeuralDynamics.SniffDetector
     /// reported by the <see cref="SniffDetector"/> device.
     /// </summary>
     /// <seealso cref="RawVoltage"/>
-    /// <seealso cref="ErrorState"/>
-    /// <seealso cref="EventEnable"/>
-    /// <seealso cref="EventDispatchFrequency"/>
+    /// <seealso cref="RawVoltageDispatchRate"/>
     [XmlInclude(typeof(RawVoltage))]
-    [XmlInclude(typeof(ErrorState))]
-    [XmlInclude(typeof(EventEnable))]
-    [XmlInclude(typeof(EventDispatchFrequency))]
+    [XmlInclude(typeof(RawVoltageDispatchRate))]
     [Description("Filters register-specific messages reported by the SniffDetector device.")]
     public class FilterRegister : FilterRegisterBuilder, INamedElement
     {
@@ -99,17 +93,11 @@ namespace AllenNeuralDynamics.SniffDetector
     /// reported by the SniffDetector device.
     /// </summary>
     /// <seealso cref="RawVoltage"/>
-    /// <seealso cref="ErrorState"/>
-    /// <seealso cref="EventEnable"/>
-    /// <seealso cref="EventDispatchFrequency"/>
+    /// <seealso cref="RawVoltageDispatchRate"/>
     [XmlInclude(typeof(RawVoltage))]
-    [XmlInclude(typeof(ErrorState))]
-    [XmlInclude(typeof(EventEnable))]
-    [XmlInclude(typeof(EventDispatchFrequency))]
+    [XmlInclude(typeof(RawVoltageDispatchRate))]
     [XmlInclude(typeof(TimestampedRawVoltage))]
-    [XmlInclude(typeof(TimestampedErrorState))]
-    [XmlInclude(typeof(TimestampedEventEnable))]
-    [XmlInclude(typeof(TimestampedEventDispatchFrequency))]
+    [XmlInclude(typeof(TimestampedRawVoltageDispatchRate))]
     [Description("Filters and selects specific messages reported by the SniffDetector device.")]
     public partial class Parse : ParseBuilder, INamedElement
     {
@@ -129,13 +117,9 @@ namespace AllenNeuralDynamics.SniffDetector
     /// SniffDetector register messages.
     /// </summary>
     /// <seealso cref="RawVoltage"/>
-    /// <seealso cref="ErrorState"/>
-    /// <seealso cref="EventEnable"/>
-    /// <seealso cref="EventDispatchFrequency"/>
+    /// <seealso cref="RawVoltageDispatchRate"/>
     [XmlInclude(typeof(RawVoltage))]
-    [XmlInclude(typeof(ErrorState))]
-    [XmlInclude(typeof(EventEnable))]
-    [XmlInclude(typeof(EventDispatchFrequency))]
+    [XmlInclude(typeof(RawVoltageDispatchRate))]
     [Description("Formats a sequence of values as specific SniffDetector register messages.")]
     public partial class Format : FormatBuilder, INamedElement
     {
@@ -247,222 +231,28 @@ namespace AllenNeuralDynamics.SniffDetector
     }
 
     /// <summary>
-    /// Represents a register that emits an event with error state information.
+    /// Represents a register that sets the rate at which the RawVoltage event is emitted.
     /// </summary>
-    [Description("Emits an event with error state information.")]
-    public partial class ErrorState
+    [Description("Sets the rate at which the RawVoltage event is emitted.")]
+    public partial class RawVoltageDispatchRate
     {
         /// <summary>
-        /// Represents the address of the <see cref="ErrorState"/> register. This field is constant.
+        /// Represents the address of the <see cref="RawVoltageDispatchRate"/> register. This field is constant.
         /// </summary>
         public const int Address = 33;
 
         /// <summary>
-        /// Represents the payload type of the <see cref="ErrorState"/> register. This field is constant.
-        /// </summary>
-        public const PayloadType RegisterType = PayloadType.U8;
-
-        /// <summary>
-        /// Represents the length of the <see cref="ErrorState"/> register. This field is constant.
-        /// </summary>
-        public const int RegisterLength = 1;
-
-        /// <summary>
-        /// Returns the payload data for <see cref="ErrorState"/> register messages.
-        /// </summary>
-        /// <param name="message">A <see cref="HarpMessage"/> object representing the register message.</param>
-        /// <returns>A value representing the message payload.</returns>
-        public static Errors GetPayload(HarpMessage message)
-        {
-            return (Errors)message.GetPayloadByte();
-        }
-
-        /// <summary>
-        /// Returns the timestamped payload data for <see cref="ErrorState"/> register messages.
-        /// </summary>
-        /// <param name="message">A <see cref="HarpMessage"/> object representing the register message.</param>
-        /// <returns>A value representing the timestamped message payload.</returns>
-        public static Timestamped<Errors> GetTimestampedPayload(HarpMessage message)
-        {
-            var payload = message.GetTimestampedPayloadByte();
-            return Timestamped.Create((Errors)payload.Value, payload.Seconds);
-        }
-
-        /// <summary>
-        /// Returns a Harp message for the <see cref="ErrorState"/> register.
-        /// </summary>
-        /// <param name="messageType">The type of the Harp message.</param>
-        /// <param name="value">The value to be stored in the message payload.</param>
-        /// <returns>
-        /// A <see cref="HarpMessage"/> object for the <see cref="ErrorState"/> register
-        /// with the specified message type and payload.
-        /// </returns>
-        public static HarpMessage FromPayload(MessageType messageType, Errors value)
-        {
-            return HarpMessage.FromByte(Address, messageType, (byte)value);
-        }
-
-        /// <summary>
-        /// Returns a timestamped Harp message for the <see cref="ErrorState"/>
-        /// register.
-        /// </summary>
-        /// <param name="timestamp">The timestamp of the message payload, in seconds.</param>
-        /// <param name="messageType">The type of the Harp message.</param>
-        /// <param name="value">The value to be stored in the message payload.</param>
-        /// <returns>
-        /// A <see cref="HarpMessage"/> object for the <see cref="ErrorState"/> register
-        /// with the specified message type, timestamp, and payload.
-        /// </returns>
-        public static HarpMessage FromPayload(double timestamp, MessageType messageType, Errors value)
-        {
-            return HarpMessage.FromByte(Address, timestamp, messageType, (byte)value);
-        }
-    }
-
-    /// <summary>
-    /// Provides methods for manipulating timestamped messages from the
-    /// ErrorState register.
-    /// </summary>
-    /// <seealso cref="ErrorState"/>
-    [Description("Filters and selects timestamped messages from the ErrorState register.")]
-    public partial class TimestampedErrorState
-    {
-        /// <summary>
-        /// Represents the address of the <see cref="ErrorState"/> register. This field is constant.
-        /// </summary>
-        public const int Address = ErrorState.Address;
-
-        /// <summary>
-        /// Returns timestamped payload data for <see cref="ErrorState"/> register messages.
-        /// </summary>
-        /// <param name="message">A <see cref="HarpMessage"/> object representing the register message.</param>
-        /// <returns>A value representing the timestamped message payload.</returns>
-        public static Timestamped<Errors> GetPayload(HarpMessage message)
-        {
-            return ErrorState.GetTimestampedPayload(message);
-        }
-    }
-
-    /// <summary>
-    /// Represents a register that enables the dispatch of selected events.
-    /// </summary>
-    [Description("Enables the dispatch of selected events.")]
-    public partial class EventEnable
-    {
-        /// <summary>
-        /// Represents the address of the <see cref="EventEnable"/> register. This field is constant.
-        /// </summary>
-        public const int Address = 34;
-
-        /// <summary>
-        /// Represents the payload type of the <see cref="EventEnable"/> register. This field is constant.
-        /// </summary>
-        public const PayloadType RegisterType = PayloadType.U8;
-
-        /// <summary>
-        /// Represents the length of the <see cref="EventEnable"/> register. This field is constant.
-        /// </summary>
-        public const int RegisterLength = 1;
-
-        /// <summary>
-        /// Returns the payload data for <see cref="EventEnable"/> register messages.
-        /// </summary>
-        /// <param name="message">A <see cref="HarpMessage"/> object representing the register message.</param>
-        /// <returns>A value representing the message payload.</returns>
-        public static SniffDetectorEvents GetPayload(HarpMessage message)
-        {
-            return (SniffDetectorEvents)message.GetPayloadByte();
-        }
-
-        /// <summary>
-        /// Returns the timestamped payload data for <see cref="EventEnable"/> register messages.
-        /// </summary>
-        /// <param name="message">A <see cref="HarpMessage"/> object representing the register message.</param>
-        /// <returns>A value representing the timestamped message payload.</returns>
-        public static Timestamped<SniffDetectorEvents> GetTimestampedPayload(HarpMessage message)
-        {
-            var payload = message.GetTimestampedPayloadByte();
-            return Timestamped.Create((SniffDetectorEvents)payload.Value, payload.Seconds);
-        }
-
-        /// <summary>
-        /// Returns a Harp message for the <see cref="EventEnable"/> register.
-        /// </summary>
-        /// <param name="messageType">The type of the Harp message.</param>
-        /// <param name="value">The value to be stored in the message payload.</param>
-        /// <returns>
-        /// A <see cref="HarpMessage"/> object for the <see cref="EventEnable"/> register
-        /// with the specified message type and payload.
-        /// </returns>
-        public static HarpMessage FromPayload(MessageType messageType, SniffDetectorEvents value)
-        {
-            return HarpMessage.FromByte(Address, messageType, (byte)value);
-        }
-
-        /// <summary>
-        /// Returns a timestamped Harp message for the <see cref="EventEnable"/>
-        /// register.
-        /// </summary>
-        /// <param name="timestamp">The timestamp of the message payload, in seconds.</param>
-        /// <param name="messageType">The type of the Harp message.</param>
-        /// <param name="value">The value to be stored in the message payload.</param>
-        /// <returns>
-        /// A <see cref="HarpMessage"/> object for the <see cref="EventEnable"/> register
-        /// with the specified message type, timestamp, and payload.
-        /// </returns>
-        public static HarpMessage FromPayload(double timestamp, MessageType messageType, SniffDetectorEvents value)
-        {
-            return HarpMessage.FromByte(Address, timestamp, messageType, (byte)value);
-        }
-    }
-
-    /// <summary>
-    /// Provides methods for manipulating timestamped messages from the
-    /// EventEnable register.
-    /// </summary>
-    /// <seealso cref="EventEnable"/>
-    [Description("Filters and selects timestamped messages from the EventEnable register.")]
-    public partial class TimestampedEventEnable
-    {
-        /// <summary>
-        /// Represents the address of the <see cref="EventEnable"/> register. This field is constant.
-        /// </summary>
-        public const int Address = EventEnable.Address;
-
-        /// <summary>
-        /// Returns timestamped payload data for <see cref="EventEnable"/> register messages.
-        /// </summary>
-        /// <param name="message">A <see cref="HarpMessage"/> object representing the register message.</param>
-        /// <returns>A value representing the timestamped message payload.</returns>
-        public static Timestamped<SniffDetectorEvents> GetPayload(HarpMessage message)
-        {
-            return EventEnable.GetTimestampedPayload(message);
-        }
-    }
-
-    /// <summary>
-    /// Represents a register that the frequency at which the device will emit periodic events selected under SniffDetectorEvents.
-    /// </summary>
-    [Description("The frequency at which the device will emit periodic events selected under SniffDetectorEvents.")]
-    public partial class EventDispatchFrequency
-    {
-        /// <summary>
-        /// Represents the address of the <see cref="EventDispatchFrequency"/> register. This field is constant.
-        /// </summary>
-        public const int Address = 35;
-
-        /// <summary>
-        /// Represents the payload type of the <see cref="EventDispatchFrequency"/> register. This field is constant.
+        /// Represents the payload type of the <see cref="RawVoltageDispatchRate"/> register. This field is constant.
         /// </summary>
         public const PayloadType RegisterType = PayloadType.U16;
 
         /// <summary>
-        /// Represents the length of the <see cref="EventDispatchFrequency"/> register. This field is constant.
+        /// Represents the length of the <see cref="RawVoltageDispatchRate"/> register. This field is constant.
         /// </summary>
         public const int RegisterLength = 1;
 
         /// <summary>
-        /// Returns the payload data for <see cref="EventDispatchFrequency"/> register messages.
+        /// Returns the payload data for <see cref="RawVoltageDispatchRate"/> register messages.
         /// </summary>
         /// <param name="message">A <see cref="HarpMessage"/> object representing the register message.</param>
         /// <returns>A value representing the message payload.</returns>
@@ -472,7 +262,7 @@ namespace AllenNeuralDynamics.SniffDetector
         }
 
         /// <summary>
-        /// Returns the timestamped payload data for <see cref="EventDispatchFrequency"/> register messages.
+        /// Returns the timestamped payload data for <see cref="RawVoltageDispatchRate"/> register messages.
         /// </summary>
         /// <param name="message">A <see cref="HarpMessage"/> object representing the register message.</param>
         /// <returns>A value representing the timestamped message payload.</returns>
@@ -482,12 +272,12 @@ namespace AllenNeuralDynamics.SniffDetector
         }
 
         /// <summary>
-        /// Returns a Harp message for the <see cref="EventDispatchFrequency"/> register.
+        /// Returns a Harp message for the <see cref="RawVoltageDispatchRate"/> register.
         /// </summary>
         /// <param name="messageType">The type of the Harp message.</param>
         /// <param name="value">The value to be stored in the message payload.</param>
         /// <returns>
-        /// A <see cref="HarpMessage"/> object for the <see cref="EventDispatchFrequency"/> register
+        /// A <see cref="HarpMessage"/> object for the <see cref="RawVoltageDispatchRate"/> register
         /// with the specified message type and payload.
         /// </returns>
         public static HarpMessage FromPayload(MessageType messageType, ushort value)
@@ -496,14 +286,14 @@ namespace AllenNeuralDynamics.SniffDetector
         }
 
         /// <summary>
-        /// Returns a timestamped Harp message for the <see cref="EventDispatchFrequency"/>
+        /// Returns a timestamped Harp message for the <see cref="RawVoltageDispatchRate"/>
         /// register.
         /// </summary>
         /// <param name="timestamp">The timestamp of the message payload, in seconds.</param>
         /// <param name="messageType">The type of the Harp message.</param>
         /// <param name="value">The value to be stored in the message payload.</param>
         /// <returns>
-        /// A <see cref="HarpMessage"/> object for the <see cref="EventDispatchFrequency"/> register
+        /// A <see cref="HarpMessage"/> object for the <see cref="RawVoltageDispatchRate"/> register
         /// with the specified message type, timestamp, and payload.
         /// </returns>
         public static HarpMessage FromPayload(double timestamp, MessageType messageType, ushort value)
@@ -514,25 +304,25 @@ namespace AllenNeuralDynamics.SniffDetector
 
     /// <summary>
     /// Provides methods for manipulating timestamped messages from the
-    /// EventDispatchFrequency register.
+    /// RawVoltageDispatchRate register.
     /// </summary>
-    /// <seealso cref="EventDispatchFrequency"/>
-    [Description("Filters and selects timestamped messages from the EventDispatchFrequency register.")]
-    public partial class TimestampedEventDispatchFrequency
+    /// <seealso cref="RawVoltageDispatchRate"/>
+    [Description("Filters and selects timestamped messages from the RawVoltageDispatchRate register.")]
+    public partial class TimestampedRawVoltageDispatchRate
     {
         /// <summary>
-        /// Represents the address of the <see cref="EventDispatchFrequency"/> register. This field is constant.
+        /// Represents the address of the <see cref="RawVoltageDispatchRate"/> register. This field is constant.
         /// </summary>
-        public const int Address = EventDispatchFrequency.Address;
+        public const int Address = RawVoltageDispatchRate.Address;
 
         /// <summary>
-        /// Returns timestamped payload data for <see cref="EventDispatchFrequency"/> register messages.
+        /// Returns timestamped payload data for <see cref="RawVoltageDispatchRate"/> register messages.
         /// </summary>
         /// <param name="message">A <see cref="HarpMessage"/> object representing the register message.</param>
         /// <returns>A value representing the timestamped message payload.</returns>
         public static Timestamped<ushort> GetPayload(HarpMessage message)
         {
-            return EventDispatchFrequency.GetTimestampedPayload(message);
+            return RawVoltageDispatchRate.GetTimestampedPayload(message);
         }
     }
 
@@ -541,17 +331,11 @@ namespace AllenNeuralDynamics.SniffDetector
     /// SniffDetector device.
     /// </summary>
     /// <seealso cref="CreateRawVoltagePayload"/>
-    /// <seealso cref="CreateErrorStatePayload"/>
-    /// <seealso cref="CreateEventEnablePayload"/>
-    /// <seealso cref="CreateEventDispatchFrequencyPayload"/>
+    /// <seealso cref="CreateRawVoltageDispatchRatePayload"/>
     [XmlInclude(typeof(CreateRawVoltagePayload))]
-    [XmlInclude(typeof(CreateErrorStatePayload))]
-    [XmlInclude(typeof(CreateEventEnablePayload))]
-    [XmlInclude(typeof(CreateEventDispatchFrequencyPayload))]
+    [XmlInclude(typeof(CreateRawVoltageDispatchRatePayload))]
     [XmlInclude(typeof(CreateTimestampedRawVoltagePayload))]
-    [XmlInclude(typeof(CreateTimestampedErrorStatePayload))]
-    [XmlInclude(typeof(CreateTimestampedEventEnablePayload))]
-    [XmlInclude(typeof(CreateTimestampedEventDispatchFrequencyPayload))]
+    [XmlInclude(typeof(CreateTimestampedRawVoltageDispatchRatePayload))]
     [Description("Creates standard message payloads for the SniffDetector device.")]
     public partial class CreateMessage : CreateMessageBuilder, INamedElement
     {
@@ -622,183 +406,55 @@ namespace AllenNeuralDynamics.SniffDetector
 
     /// <summary>
     /// Represents an operator that creates a message payload
-    /// that emits an event with error state information.
+    /// that sets the rate at which the RawVoltage event is emitted.
     /// </summary>
-    [DisplayName("ErrorStatePayload")]
-    [Description("Creates a message payload that emits an event with error state information.")]
-    public partial class CreateErrorStatePayload
+    [DisplayName("RawVoltageDispatchRatePayload")]
+    [Description("Creates a message payload that sets the rate at which the RawVoltage event is emitted.")]
+    public partial class CreateRawVoltageDispatchRatePayload
     {
         /// <summary>
-        /// Gets or sets the value that emits an event with error state information.
+        /// Gets or sets the value that sets the rate at which the RawVoltage event is emitted.
         /// </summary>
-        [Description("The value that emits an event with error state information.")]
-        public Errors ErrorState { get; set; }
+        [Description("The value that sets the rate at which the RawVoltage event is emitted.")]
+        public ushort RawVoltageDispatchRate { get; set; }
 
         /// <summary>
-        /// Creates a message payload for the ErrorState register.
-        /// </summary>
-        /// <returns>The created message payload value.</returns>
-        public Errors GetPayload()
-        {
-            return ErrorState;
-        }
-
-        /// <summary>
-        /// Creates a message that emits an event with error state information.
-        /// </summary>
-        /// <param name="messageType">Specifies the type of the created message.</param>
-        /// <returns>A new message for the ErrorState register.</returns>
-        public HarpMessage GetMessage(MessageType messageType)
-        {
-            return AllenNeuralDynamics.SniffDetector.ErrorState.FromPayload(messageType, GetPayload());
-        }
-    }
-
-    /// <summary>
-    /// Represents an operator that creates a timestamped message payload
-    /// that emits an event with error state information.
-    /// </summary>
-    [DisplayName("TimestampedErrorStatePayload")]
-    [Description("Creates a timestamped message payload that emits an event with error state information.")]
-    public partial class CreateTimestampedErrorStatePayload : CreateErrorStatePayload
-    {
-        /// <summary>
-        /// Creates a timestamped message that emits an event with error state information.
-        /// </summary>
-        /// <param name="timestamp">The timestamp of the message payload, in seconds.</param>
-        /// <param name="messageType">Specifies the type of the created message.</param>
-        /// <returns>A new timestamped message for the ErrorState register.</returns>
-        public HarpMessage GetMessage(double timestamp, MessageType messageType)
-        {
-            return AllenNeuralDynamics.SniffDetector.ErrorState.FromPayload(timestamp, messageType, GetPayload());
-        }
-    }
-
-    /// <summary>
-    /// Represents an operator that creates a message payload
-    /// that enables the dispatch of selected events.
-    /// </summary>
-    [DisplayName("EventEnablePayload")]
-    [Description("Creates a message payload that enables the dispatch of selected events.")]
-    public partial class CreateEventEnablePayload
-    {
-        /// <summary>
-        /// Gets or sets the value that enables the dispatch of selected events.
-        /// </summary>
-        [Description("The value that enables the dispatch of selected events.")]
-        public SniffDetectorEvents EventEnable { get; set; }
-
-        /// <summary>
-        /// Creates a message payload for the EventEnable register.
-        /// </summary>
-        /// <returns>The created message payload value.</returns>
-        public SniffDetectorEvents GetPayload()
-        {
-            return EventEnable;
-        }
-
-        /// <summary>
-        /// Creates a message that enables the dispatch of selected events.
-        /// </summary>
-        /// <param name="messageType">Specifies the type of the created message.</param>
-        /// <returns>A new message for the EventEnable register.</returns>
-        public HarpMessage GetMessage(MessageType messageType)
-        {
-            return AllenNeuralDynamics.SniffDetector.EventEnable.FromPayload(messageType, GetPayload());
-        }
-    }
-
-    /// <summary>
-    /// Represents an operator that creates a timestamped message payload
-    /// that enables the dispatch of selected events.
-    /// </summary>
-    [DisplayName("TimestampedEventEnablePayload")]
-    [Description("Creates a timestamped message payload that enables the dispatch of selected events.")]
-    public partial class CreateTimestampedEventEnablePayload : CreateEventEnablePayload
-    {
-        /// <summary>
-        /// Creates a timestamped message that enables the dispatch of selected events.
-        /// </summary>
-        /// <param name="timestamp">The timestamp of the message payload, in seconds.</param>
-        /// <param name="messageType">Specifies the type of the created message.</param>
-        /// <returns>A new timestamped message for the EventEnable register.</returns>
-        public HarpMessage GetMessage(double timestamp, MessageType messageType)
-        {
-            return AllenNeuralDynamics.SniffDetector.EventEnable.FromPayload(timestamp, messageType, GetPayload());
-        }
-    }
-
-    /// <summary>
-    /// Represents an operator that creates a message payload
-    /// that the frequency at which the device will emit periodic events selected under SniffDetectorEvents.
-    /// </summary>
-    [DisplayName("EventDispatchFrequencyPayload")]
-    [Description("Creates a message payload that the frequency at which the device will emit periodic events selected under SniffDetectorEvents.")]
-    public partial class CreateEventDispatchFrequencyPayload
-    {
-        /// <summary>
-        /// Gets or sets the value that the frequency at which the device will emit periodic events selected under SniffDetectorEvents.
-        /// </summary>
-        [Description("The value that the frequency at which the device will emit periodic events selected under SniffDetectorEvents.")]
-        public ushort EventDispatchFrequency { get; set; } = 100;
-
-        /// <summary>
-        /// Creates a message payload for the EventDispatchFrequency register.
+        /// Creates a message payload for the RawVoltageDispatchRate register.
         /// </summary>
         /// <returns>The created message payload value.</returns>
         public ushort GetPayload()
         {
-            return EventDispatchFrequency;
+            return RawVoltageDispatchRate;
         }
 
         /// <summary>
-        /// Creates a message that the frequency at which the device will emit periodic events selected under SniffDetectorEvents.
+        /// Creates a message that sets the rate at which the RawVoltage event is emitted.
         /// </summary>
         /// <param name="messageType">Specifies the type of the created message.</param>
-        /// <returns>A new message for the EventDispatchFrequency register.</returns>
+        /// <returns>A new message for the RawVoltageDispatchRate register.</returns>
         public HarpMessage GetMessage(MessageType messageType)
         {
-            return AllenNeuralDynamics.SniffDetector.EventDispatchFrequency.FromPayload(messageType, GetPayload());
+            return AllenNeuralDynamics.SniffDetector.RawVoltageDispatchRate.FromPayload(messageType, GetPayload());
         }
     }
 
     /// <summary>
     /// Represents an operator that creates a timestamped message payload
-    /// that the frequency at which the device will emit periodic events selected under SniffDetectorEvents.
+    /// that sets the rate at which the RawVoltage event is emitted.
     /// </summary>
-    [DisplayName("TimestampedEventDispatchFrequencyPayload")]
-    [Description("Creates a timestamped message payload that the frequency at which the device will emit periodic events selected under SniffDetectorEvents.")]
-    public partial class CreateTimestampedEventDispatchFrequencyPayload : CreateEventDispatchFrequencyPayload
+    [DisplayName("TimestampedRawVoltageDispatchRatePayload")]
+    [Description("Creates a timestamped message payload that sets the rate at which the RawVoltage event is emitted.")]
+    public partial class CreateTimestampedRawVoltageDispatchRatePayload : CreateRawVoltageDispatchRatePayload
     {
         /// <summary>
-        /// Creates a timestamped message that the frequency at which the device will emit periodic events selected under SniffDetectorEvents.
+        /// Creates a timestamped message that sets the rate at which the RawVoltage event is emitted.
         /// </summary>
         /// <param name="timestamp">The timestamp of the message payload, in seconds.</param>
         /// <param name="messageType">Specifies the type of the created message.</param>
-        /// <returns>A new timestamped message for the EventDispatchFrequency register.</returns>
+        /// <returns>A new timestamped message for the RawVoltageDispatchRate register.</returns>
         public HarpMessage GetMessage(double timestamp, MessageType messageType)
         {
-            return AllenNeuralDynamics.SniffDetector.EventDispatchFrequency.FromPayload(timestamp, messageType, GetPayload());
+            return AllenNeuralDynamics.SniffDetector.RawVoltageDispatchRate.FromPayload(timestamp, messageType, GetPayload());
         }
-    }
-
-    /// <summary>
-    /// Available period events.
-    /// </summary>
-    [Flags]
-    public enum SniffDetectorEvents : byte
-    {
-        None = 0x0,
-        RawVoltage = 0x1
-    }
-
-    /// <summary>
-    /// Available error states in the board
-    /// </summary>
-    [Flags]
-    public enum Errors : byte
-    {
-        None = 0x0,
-        SensorNotDetected = 0x1
     }
 }
