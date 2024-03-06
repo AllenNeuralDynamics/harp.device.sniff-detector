@@ -13,6 +13,7 @@
 #define SAMPLE_INTERVAL_US (10'000) // 100 Hz
 #define DISCONNECT_CHECK_INTERVAL_US (2'000'000) // 0.5 Hz
 
+
 // Create PIO SPI ADC instance for thermistor sensing.
 PIO_ADS7049 thermistor(pio0, ADC_CS_PIN, ADC_SCK_PIN, ADC_POCI_PIN);
 
@@ -97,8 +98,7 @@ void reset_app()
 {
     // Put app variables in starting state.
     next_msg_dispatch_time_us = time_us_32();
-    app_regs.voltage_dispatch_frequency_hz = 0; // Do not dispatch periodic
-                                                // voltage events.
+    app_regs.voltage_dispatch_frequency_hz = DEFAULT_DISPATCH_FREQUENCY_HZ;
 }
 
 // Create Core.
