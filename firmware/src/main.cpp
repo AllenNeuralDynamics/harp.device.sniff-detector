@@ -44,6 +44,8 @@ struct app_regs_t
 #pragma pack(pop)
 app_regs_t __not_in_flash("app_regs") app_regs; // put app regs in ram.
 
+volatile uint16_t temp_voltage_raw;
+
 // Define "specs" per-register
 RegSpecs app_reg_specs[reg_count]
 {
@@ -70,9 +72,17 @@ void write_voltage_dispatch_frequency_hz(msg_t& msg)
     HarpCore::send_harp_reply(WRITE, msg.header.address);
 }
 
+void read_voltage_raw(uint8_t reg_name)
+{
+    // Copy the data (should be an atomic) so that it doesn't change when we
+    // write it later byte-by-byte.
+    app_regs.voltage_raw = temp_voltage_raw;
+    HarpCore::send_harp_reply(READ, reg_name);
+}
+
 RegFnPair reg_handler_fns[reg_count]
 {
-    {HarpCore::read_reg_generic, HarpCore::write_to_read_only_reg_error},
+    {read_voltage_raw, HarpCore::write_to_read_only_reg_error},
     {HarpCore::read_reg_generic, write_voltage_dispatch_frequency_hz}
     // More handler function pairs here if we add additional registers.
 };
@@ -86,6 +96,9 @@ void update_app_state()
         return;
     if (int32_t(curr_time_us - next_msg_dispatch_time_us) >= dispatch_interval_us)
     {
+        // Copy the data (should be an atomic) so that it doesn't change when we
+        // write it later byte-by-byte.
+        app_regs.voltage_raw = temp_voltage_raw;
         next_msg_dispatch_time_us += dispatch_interval_us;
         const RegSpecs& reg_specs = app_reg_specs[0]; // voltage_raw reg.
         HarpCore::send_harp_reply(EVENT, APP_REG_START_ADDRESS,
@@ -125,7 +138,8 @@ int main()
     //app.set_visual_indicators_fn(set_led_state);
     // Setup continuous writing of the latest ADC value to the corresponding
     // Harp register.
-    thermistor.setup_dma_stream_to_memory(&app_regs.voltage_raw, 1);
+    //thermistor.setup_dma_stream_to_memory(&app_regs.voltage_raw, 1);
+    thermistor.setup_dma_stream_to_memory(&temp_voltage_raw, 1);
     // Start PIO-connected hardware.
     thermistor.start();
     reset_app();

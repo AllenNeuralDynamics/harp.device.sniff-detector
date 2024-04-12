@@ -2,7 +2,7 @@
 #define CONFIG_H
 
 
-#define DEFAULT_DISPATCH_FREQUENCY_HZ (1)
+#define DEFAULT_DISPATCH_FREQUENCY_HZ (0)
 #define MAX_EVENT_FREQUENCY_HZ (1000)
 
 #define UART_TX_PIN (0) // for printf-style debugging.
