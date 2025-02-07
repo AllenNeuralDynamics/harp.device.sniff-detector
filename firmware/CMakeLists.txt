@@ -10,7 +10,7 @@ add_definitions(-DUSBD_PRODUCT="sniff-detector")
 
 include(${PICO_SDK_PATH}/pico_sdk_init.cmake)
 
-project(sniff-detector-${COMMIT_ID})
+project(sniff-detector)
 
 set(CMAKE_CXX_STANDARD 17)
 
