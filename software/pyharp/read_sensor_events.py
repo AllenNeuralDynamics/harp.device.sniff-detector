@@ -4,10 +4,10 @@ from pyharp.messages import HarpMessage
 from pyharp.messages import MessageType
 from pyharp.messages import CommonRegisters as Regs
 from struct import *
-from time import sleep, perf_counter
 import logging
 import os
 import serial.tools.list_ports
+from time import sleep, perf_counter
 
 #import logging
 #logging.basicConfig()
@@ -26,12 +26,16 @@ device = Device(com_port)
 
 # Read encoder and torque raw measurements.
 try:
+    # Enable periodic sniff sensor messages
+    dispatch_rate_msg = HarpMessage.WriteU16(33, 1)
+    device.send(dispatch_rate_msg.frame)
     while True:
-        measurement = device.send(HarpMessage.ReadU16(32).frame)
-        print("Thermistor raw:")
-        print(measurement.payload)
-        print()
-        sleep(0.015);
+        for msg in device.get_events():
+            print(msg)
+            print()
 finally:
+    # Disable periodic sniff sensor messages.
+    dispatch_rate_msg = HarpMessage.WriteU16(33, 0)
+    device.send(dispatch_rate_msg.frame)
     # Close connection
     device.disconnect()
